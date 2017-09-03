@@ -1,0 +1,41 @@
+<resources>
+
+    <!-- Base application theme. -->
+    <style name="AppTheme" parent="ThemeOverlay.AppCompat.Dark.ActionBar">
+        <!-- Customize your theme here. -->
+        <item name="colorPrimary">@color/colorPrimary</item>
+        <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
+        <item name="colorAccent">@color/colorAccent</item>
+        <item name="titleTextStyle">@style/MyTitleTextStyle</item>
+    </style>
+
+    <style name="AppTheme.NoActionBar">
+        <item name="windowActionBar">false</item>
+        <item name="windowNoTitle">true</item>
+    </style>
+
+    <style name="BaseText" parent="android:style/Widget.TextView">
+        <item name="android:textSize">20sp</item>
+        <item name="android:textColor">#e1262623</item>
+        <item name="android:layout_gravity">center</item>
+        <item name="android:gravity">center</item>
+    </style>
+
+    <style name="MyTitleTextStyle" parent="@style/TextAppearance.AppCompat.Widget.ActionBar.Title">
+        <item name="android:textColor">@color/colorAccent</item>
+    </style>
+
+    <style name="BaseTextSmall" parent="BaseText">
+        <item name="android:textSize">15sp</item>
+        <item name="android:textColor">#e1b6b6b3</item>
+    </style>
+
+    <style name="BaseTextAuthor" parent="BaseText">
+        <item name="android:textSize">15sp</item>
+        <item name="android:textColor">#f57f17</item>
+    </style>
+
+
+
+
+</resources>
