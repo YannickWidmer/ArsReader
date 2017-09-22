@@ -2,7 +2,10 @@ package ch.widmer.yannick.arstechnicafeed;
 
 import android.app.Application;
 
+import org.joda.time.DateTime;
+
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -12,37 +15,35 @@ import java.util.List;
 public class RootApplication extends Application {
 
     private static final String LOG = "root application";
+    private DataManager mManager;
+    private MainActivity mActivity;
 
     @Override
     public void onCreate(){
         super.onCreate();
+        mManager = new DataManager(this);
+        mManager.retrieveEntries();
+    }
+
+    public void setActivity(MainActivity act){
+        mActivity = act;
     }
 
     public List<ArticleEntry> getEntrys(){
-        // TODO replace dummy
-        ArrayList<ArticleEntry> res = new ArrayList<>();
-
-        ArticleEntry one = new ArticleEntry();
-        one.title = "Not read";
-
-        ArticleEntry two = new ArticleEntry();
-        two.title = "read not saved";
-        two.read = true;
-
-        ArticleEntry three = new ArticleEntry();
-        three.title = "read and to be saved";
-        two.read = true;
-        two.toBeSaved = true;
-
-
-        res.add(one);
-        res.add(two);
-        res.add(three);
-        return res;
+        return mManager.getEntrys();
     }
 
     public Article getArticle(Article art){
         //TODO
         return new Article();
+    }
+
+    public void refresh(){
+        mManager.retrieveEntries();
+    }
+
+    public void reactToNewEntries() {
+        if(mActivity != null)
+            mActivity.refresh();
     }
 }

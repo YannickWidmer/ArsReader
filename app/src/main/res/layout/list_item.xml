@@ -1,31 +1,48 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
     android:layout_margin="@dimen/fab_margin"
-    android:layout_height="wrap_content">
+    android:animateLayoutChanges="false"
+    android:clickable="true">
 
     <TextView
         android:id="@+id/title"
         style="@style/BaseText"
+        android:layout_marginTop="@dimen/fab_margin"
+        android:layout_marginLeft="@dimen/small_margin"
+        android:layout_marginRight="@dimen/small_margin"
+        android:layout_marginBottom="@dimen/small_margin"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_centerHorizontal="true"
         android:layout_alignParentTop="true"
+        android:layout_centerHorizontal="true"
         android:text="title" />
 
     <TextView
         android:id="@+id/description"
         style="@style/BaseTextSmall"
+        android:layout_marginLeft="@dimen/small_margin"
+        android:layout_marginRight="@dimen/small_margin"
         android:layout_width="match_parent"
-        android:layout_below="@+id/title"
-        android:maxLines="4"
         android:layout_height="wrap_content"
+        android:layout_below="@+id/title"
+        android:layout_toLeftOf="@+id/favourite"
         android:ellipsize="marquee"
-        android:text="@string/lorem" />
+        android:maxLines="4"/>
+
+    <CheckBox
+        android:id="@+id/favourite"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentEnd="true"
+        android:layout_centerVertical="true"
+        android:layout_margin="@dimen/fab_margin" />
 
     <TextView
         android:id="@+id/author"
         style="@style/BaseTextAuthor"
+        android:layout_marginLeft="@dimen/small_margin"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentLeft="true"
@@ -35,6 +52,7 @@
     <TextView
         android:id="@+id/date"
         android:layout_width="wrap_content"
+        android:layout_marginRight="@dimen/small_margin"
         android:layout_height="wrap_content"
         android:layout_alignParentRight="true"
         android:layout_below="@+id/description"

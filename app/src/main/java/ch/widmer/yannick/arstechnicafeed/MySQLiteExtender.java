@@ -84,7 +84,7 @@ public class MySQLiteExtender extends SQLiteOpenHelper {
             c.put(KEY_READ,entry.read);
             c.put(KEY_TOBESAVED,entry.toBeSaved);
             c.put(KEY_TITLE,entry.title);
-            pushData(TABLE_LISTENTRIES,entry.id,c);
+            entry.id = pushData(TABLE_LISTENTRIES,entry.id,c);
         }
     }
 
@@ -99,16 +99,17 @@ public class MySQLiteExtender extends SQLiteOpenHelper {
 
         if(cursor.moveToFirst()){
             do{
-                entry = new ArticleEntry();
-                entry.id = getLong(cursor,KEY_ID);
-                entry.author = getString(cursor,KEY_AUTHOR);
-                entry.publishedDate = new Date(getLong(cursor, KEY_DATE));
-                entry.description = getString(cursor,KEY_DESCRIPTION);
-                entry.url = getString(cursor,KEY_URL);
-                entry.urlToImage = getString(cursor,KEY_URLTOIMAGE);
-                entry.read = getBool(cursor,KEY_READ);
-                entry.toBeSaved = getBool(cursor,KEY_TOBESAVED);
-                entry.title = getString(cursor,KEY_TITLE);
+                // ArticleEntry(Long id,String title, String author, String description,
+                // String url, String urlToImage, Date publishedDate)
+                entry = new ArticleEntry(getLong(cursor,KEY_ID),
+                        getString(cursor,KEY_TITLE),
+                        getString(cursor,KEY_AUTHOR),
+                        getString(cursor,KEY_DESCRIPTION),
+                        getString(cursor,KEY_URL),
+                        getString(cursor,KEY_URLTOIMAGE),
+                        new Date(getLong(cursor, KEY_DATE)),
+                        getBool(cursor,KEY_READ),
+                        getBool(cursor,KEY_TOBESAVED));
                 res.add(entry);
             }while (cursor.moveToNext());
         }
