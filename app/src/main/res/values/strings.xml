@@ -3,4 +3,5 @@
     <string name="action_settings">Settings</string>
     <string name="lorem">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Curabitur dapibus orci et ullamcorper dignissim. Vivamus pretium at nulla eleifend egestas. In eleifend neque felis, eget porta sem semper vitae. Aenean eros tortor, tempus et risus sed, pharetra rutrum odio. Sed sagittis mauris eget volutpat aliquam. Nulla ac dolor posuere, pulvinar mauris et, eleifend erat. Donec semper feugiat odio in sodales. Praesent sit amet sagittis ipsum. Donec congue venenatis arcu quis aliquam. Curabitur ut arcu ac arcu tincidunt condimentum. Nullam at erat rhoncus, dapibus nisl posuere, efficitur mi. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Quisque sit amet ligula sed quam blandit consectetur rutrum ut odio. Ut vestibulum urna eu aliquam placerat.
     </string>
+    <string name="title_activity_article">ArticleActivity</string>
 </resources>

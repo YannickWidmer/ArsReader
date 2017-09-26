@@ -2,6 +2,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="ch.widmer.yannick.arstechnicafeed">
 
+    <uses-permission android:name="android.permission.INTERNET" />
+
     <application
         android:name=".RootApplication"
         android:allowBackup="true"
@@ -20,8 +22,9 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity
+            android:name=".ArticleActivity"
+            android:label="@string/title_activity_article"></activity>
     </application>
-
-    <uses-permission android:name="android.permission.INTERNET" />
 
 </manifest>

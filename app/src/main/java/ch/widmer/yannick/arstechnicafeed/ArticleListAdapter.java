@@ -7,12 +7,9 @@ import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.TextView;
 
-import org.joda.time.DateTime;
-import org.joda.time.format.DateTimeFormat;
-import org.joda.time.format.DateTimeFormatter;
-
-import java.util.ArrayList;
 import java.util.List;
+
+import ch.widmer.yannick.arstechnicafeed.article.Article;
 
 
 /**
@@ -21,12 +18,12 @@ import java.util.List;
 
 public class ArticleListAdapter extends BaseAdapter {
 
-    List<ArticleEntry> mList;
+    List<Article> mList;
     Context mContext;
     LayoutInflater mLayoutInflater;
 
 
-    public ArticleListAdapter(List<ArticleEntry> list, Context context) {
+    public ArticleListAdapter(List<Article> list, Context context) {
         super();
         mList = list;
         mContext = context;
@@ -40,7 +37,7 @@ public class ArticleListAdapter extends BaseAdapter {
     }
 
     @Override
-    public ArticleEntry getItem(int position) {
+    public Article getItem(int position) {
         return mList.get(position);
     }
 
@@ -48,7 +45,7 @@ public class ArticleListAdapter extends BaseAdapter {
     public long getItemId(int position) {
         if(mList.get(position).id != null)
             return mList.get(position).id;
-        return 0;
+        return -1;
     }
 
     @Override
@@ -57,7 +54,7 @@ public class ArticleListAdapter extends BaseAdapter {
         if(convertView == null)
             convertView = mLayoutInflater.inflate(R.layout.list_item,null);
 
-        ArticleEntry entry = getItem(position);
+        Article entry = getItem(position);
 
         TextView title = (TextView) convertView.findViewById(R.id.title);
         title.setText(entry.title);
@@ -69,7 +66,7 @@ public class ArticleListAdapter extends BaseAdapter {
         else
             ((TextView) convertView.findViewById(R.id.author)).setText(entry.author);
 
-        ((TextView) convertView.findViewById(R.id.date)).setText(ArticleEntry.format.format(entry.publishedDate));
+        ((TextView) convertView.findViewById(R.id.date)).setText(Article.format.format(entry.publishedDate));
 
 
         return convertView;

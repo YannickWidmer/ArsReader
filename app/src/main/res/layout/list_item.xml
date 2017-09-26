@@ -3,8 +3,7 @@
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
     android:layout_margin="@dimen/fab_margin"
-    android:animateLayoutChanges="false"
-    android:clickable="true">
+    android:animateLayoutChanges="true">
 
     <TextView
         android:id="@+id/title"
@@ -25,19 +24,21 @@
         android:layout_marginLeft="@dimen/small_margin"
         android:layout_marginRight="@dimen/small_margin"
         android:layout_width="match_parent"
+        android:layout_toLeftOf="@+id/save_box"
         android:layout_height="wrap_content"
         android:layout_below="@+id/title"
-        android:layout_toLeftOf="@+id/favourite"
         android:ellipsize="marquee"
         android:maxLines="4"/>
 
     <CheckBox
-        android:id="@+id/favourite"
+        android:id="@+id/save_box"
+        android:focusable="false"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignParentEnd="true"
-        android:layout_centerVertical="true"
-        android:layout_margin="@dimen/fab_margin" />
+        android:padding="@dimen/fab_margin"
+        android:layout_below="@+id/title"
+        android:layout_alignParentRight="true"
+        />
 
     <TextView
         android:id="@+id/author"

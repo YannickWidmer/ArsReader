@@ -10,6 +10,8 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import ch.widmer.yannick.arstechnicafeed.article.Article;
+
 /**
  * Created by yanni on 01.09.2017.
  */
@@ -28,11 +30,11 @@ public class MySQLiteExtender extends SQLiteOpenHelper {
     // table names
     private static final String
             TABLE_LISTENTRIES = "list_entries",
-            TABLE_ARTICLES = "articles";
+            TABLE_ARTICLEPARAGRAPHS = "articles";
 
     //Table columns for all tables
     private static final String KEY_ID="id",  KEY_TITLE = "title", KEY_TEXT = "text",
-            KEY_READ = "read", KEY_TOBESAVED = "to_be_saved",
+            KEY_READ = "read", KEY_TOBESAVED = "to_be_saved", KEY_ORDER = "order_of_paragraph",
             KEY_AUTHOR = "author", KEY_DESCRIPTION = "description",
             KEY_URL = "url", KEY_URLTOIMAGE = "url_to_image",
             KEY_DATE = "date";
@@ -57,7 +59,14 @@ public class MySQLiteExtender extends SQLiteOpenHelper {
                 + KEY_URLTOIMAGE + " TEXT,"
                 + KEY_DATE + " INT"
                 + ");";
+
+        String CREATE_ARTICLES_PARAGRAPHS = "CREATE TABLE " + TABLE_ARTICLEPARAGRAPHS + "("
+                + KEY_ID + " INTEGER,"
+                + KEY_ORDER + " INTEGER,"
+                + " FOREIGN KEY ("+KEY_ID+") REFERENCES "+ TABLE_LISTENTRIES +" ("+KEY_ID+") ON DELETE CASCADE);";
+
         db.execSQL(CREATE_LISTENTRYS);
+        db.execSQL(CREATE_ARTICLES_PARAGRAPHS);
     }
 
     // Upgrading database, we don't have any version so there is no reason to do anything smart in this method
@@ -65,16 +74,16 @@ public class MySQLiteExtender extends SQLiteOpenHelper {
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
         // Drop older table if existed
         db.execSQL("DROP TABLE IF EXISTS " + TABLE_LISTENTRIES);
-        db.execSQL("DROP TABLE IF EXISTS " + TABLE_ARTICLES);
+        db.execSQL("DROP TABLE IF EXISTS " + TABLE_ARTICLEPARAGRAPHS);
         // Create tables again
         onCreate(db);
     }
 
     ////////////////// List ENTRIES /////////////////////////////////////////
 
-    public synchronized  void push(List<ArticleEntry> entries){
+    public synchronized  void push(List<Article> entries){
         ContentValues c;
-        for(ArticleEntry entry:entries){
+        for(Article entry:entries){
             c = new ContentValues();
             c.put(KEY_AUTHOR, entry.author);
             c.put(KEY_DATE, entry.publishedDate.getTime());
@@ -88,20 +97,20 @@ public class MySQLiteExtender extends SQLiteOpenHelper {
         }
     }
 
-    public synchronized List<ArticleEntry> getEntries(){
+    public synchronized List<Article> getEntries(){
         SQLiteDatabase db = getReadableDatabase();
         Cursor cursor = db.query(TABLE_LISTENTRIES, new String[]{KEY_ID, KEY_AUTHOR, KEY_DATE, KEY_DESCRIPTION,
                         KEY_URL, KEY_URLTOIMAGE, KEY_READ, KEY_TOBESAVED,KEY_TITLE},
                 null,null, null, null, null, null);
 
-        ArticleEntry entry;
-        ArrayList<ArticleEntry> res = new ArrayList<>();
+        Article entry;
+        ArrayList<Article> res = new ArrayList<>();
 
         if(cursor.moveToFirst()){
             do{
-                // ArticleEntry(Long id,String title, String author, String description,
+                // Article(Long id,String title, String author, String description,
                 // String url, String urlToImage, Date publishedDate)
-                entry = new ArticleEntry(getLong(cursor,KEY_ID),
+                entry = new Article(getLong(cursor,KEY_ID),
                         getString(cursor,KEY_TITLE),
                         getString(cursor,KEY_AUTHOR),
                         getString(cursor,KEY_DESCRIPTION),
@@ -116,6 +125,21 @@ public class MySQLiteExtender extends SQLiteOpenHelper {
         cursor.close();
         db.close();
         return res;
+    }
+
+    /////////////////  PARAGRAPHS   /////////////////////////////////////////
+
+    public synchronized void push(Article article){
+        // TODO
+    }
+
+    public boolean hasArticle(Long id){
+        // TODO
+        return false;
+    }
+
+    public synchronized Article getArticle(Long id){
+        return new Article();
     }
 
     //////////////7// Help methods   ///////////////////////////////////////////

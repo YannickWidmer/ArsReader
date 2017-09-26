@@ -1,9 +1,10 @@
-package ch.widmer.yannick.arstechnicafeed;
+package ch.widmer.yannick.arstechnicafeed.article;
 
 import org.json.JSONObject;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.Locale;
 
@@ -11,7 +12,7 @@ import java.util.Locale;
  * Created by yanni on 31.08.2017.
  */
 
-public class ArticleEntry {
+public class Article implements ArticlePart {
     /*
     this class represents the entrys in the article list, the same attribute can be found in the Article_Entry table
      id: datbase key, might be null
@@ -30,9 +31,11 @@ public class ArticleEntry {
     public boolean toBeSaved = false;
     public boolean saved = false;
 
+    public ArrayList<ArticlePart> paragraphs;
 
-    public ArticleEntry(Long id,String title, String author, String description, String url, String urlToImage, Date publishedDate,
-                        boolean read,boolean tobeSaved) {
+
+    public Article(Long id, String title, String author, String description, String url, String urlToImage, Date publishedDate,
+                   boolean read, boolean tobeSaved) {
         this.id = id;
         this.title = title;
         this.author = author;
@@ -44,7 +47,12 @@ public class ArticleEntry {
         this.toBeSaved = tobeSaved;
     }
 
-    public ArticleEntry(){
+    @Override
+    public Type getType(){
+        return Type.TITLE;
+    }
+
+    public Article(){
         // To be used in MySQLExtender
     }
 
@@ -54,7 +62,7 @@ public class ArticleEntry {
 
 
     // Constructing an Article from a JSONObject obtained from the urlrequest to "https://newsapi.org/v1/articles?apiKey="+KEY+"&source=ars-technica&sortBy=latest";
-    public ArticleEntry(JSONObject json) throws Exception{
+    public Article(JSONObject json) throws Exception{
         try {
             title = json.getString("title");
             author = json.getString("author");
@@ -71,19 +79,19 @@ public class ArticleEntry {
     @Override
     public boolean equals(Object other){
         try {
-            ArticleEntry otherEntry = (ArticleEntry) other;
+            Article otherEntry = (Article) other;
             return title.equals(otherEntry.title);
         }catch(Exception e){
             return false;
         }
     }
 
-    public boolean isPublishedAfter(ArticleEntry other){
+    public boolean isPublishedAfter(Article other){
         return publishedDate.after(other.publishedDate);
     }
 
     @Override
     public String toString(){
-        return author + "   "+format.format(publishedDate);
+        return author + "   "+format.format(publishedDate)+ " "+ url +" "+urlToImage;
     }
 }
