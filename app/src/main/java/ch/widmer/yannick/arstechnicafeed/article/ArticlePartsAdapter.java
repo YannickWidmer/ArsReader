@@ -1,6 +1,7 @@
 package ch.widmer.yannick.arstechnicafeed.article;
 
 import android.content.Context;
+import android.text.Html;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -88,7 +89,7 @@ public class ArticlePartsAdapter extends BaseAdapter {
             case H3:
             case PARAGRAPH:
             case BLOCKQUOTE:
-                ((TextView)convertView).setText(((Text)part).getText());
+                ((TextView)convertView).setText(Html.fromHtml(((Text) part).getText()));
                 break;
             case FIGURE:
                 NetworkImageView view =(NetworkImageView)convertView;
