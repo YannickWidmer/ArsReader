@@ -2,6 +2,8 @@ package ch.widmer.yannick.arstechnicafeed.article;
 
 import android.graphics.Bitmap;
 
+import java.io.ByteArrayOutputStream;
+
 /**
  * Created by yanni on 26.09.2017.
  */
@@ -25,5 +27,9 @@ public class Figure implements ArticlePart {
 
     public String getUrl() {
         return mUrl;
+    }
+
+    public Bitmap getBitmap() {
+        return mBitmap;
     }
 }

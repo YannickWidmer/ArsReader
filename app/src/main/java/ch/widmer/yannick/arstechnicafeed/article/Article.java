@@ -1,5 +1,7 @@
 package ch.widmer.yannick.arstechnicafeed.article;
 
+import android.support.annotation.NonNull;
+
 import org.json.JSONObject;
 
 import java.text.DateFormat;
@@ -12,14 +14,17 @@ import java.util.Locale;
  * Created by yanni on 31.08.2017.
  */
 
-public class Article implements ArticlePart {
-    /*
-    this class represents the entrys in the article list, the same attribute can be found in the Article_Entry table
-     id: datbase key, might be null
-     title : The title of the entry in the list
-     read: if read is true, the entry title greyed out
-     toBesaved: The save box is checked and the article will be saved when possible
-     saved: the entry is to be saved and has been saved in the data base
+public class Article implements ArticlePart , Comparable<Article>{
+    /**
+        this class represents the entrys in the article list, the same attribute can be found in the Article_Entry table
+         id: datbase key, might be null
+         title : The title of the entry in the list
+         read: if read is true, the entry title greyed out
+         toBesaved: The save box is checked and the article will be saved when possible
+         saved: the entry is to be saved and has been saved in the data base
+
+         The order is the order of the published date
+         Note: this class has a natural ordering that is inconsistent with equals.
      */
     //Infos obtained from Ars APi
     public String title, author, description, url, urlToImage;
@@ -59,6 +64,8 @@ public class Article implements ArticlePart {
     // For the date obtained from the url request we need following formatter
     // the dates obtained look like e.g. 2017-09-21T21:57:41Z , 2017-09-21T22:20:58Z
     public static DateFormat format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.ENGLISH);
+    public static DateFormat showFormat = new SimpleDateFormat("yyyy-MM-dd' - 'HH:mm", Locale.ENGLISH);
+
 
 
     // Constructing an Article from a JSONObject obtained from the urlrequest to "https://newsapi.org/v1/articles?apiKey="+KEY+"&source=ars-technica&sortBy=latest";
@@ -93,5 +100,10 @@ public class Article implements ArticlePart {
     @Override
     public String toString(){
         return author + "   "+format.format(publishedDate)+ " "+ url +" "+urlToImage;
+    }
+
+    @Override
+    public int compareTo(@NonNull Article o) {
+        return publishedDate.compareTo(o.publishedDate);
     }
 }

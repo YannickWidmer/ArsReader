@@ -1,7 +1,9 @@
 package ch.widmer.yannick.arstechnicafeed;
 
+import android.app.Activity;
 import android.app.Application;
 import android.graphics.Point;
+import android.util.Log;
 
 import java.util.List;
 
@@ -32,6 +34,11 @@ public class RootApplication extends Application {
         mManager.retrieveEntries();
     }
 
+    public Activity getActivity(){
+        if(mArticleActivity != null)
+            return mArticleActivity;
+        return mActivity;
+    }
 
 
     public void setMainActivity(MainActivity act,int screenSize){
@@ -44,7 +51,7 @@ public class RootApplication extends Application {
 
     public void getArticle(Long id, ArticleActivity act){
         mArticleActivity = act;
-        mManager.retrieveArticle(id);
+        mManager.retrieveArticle(id,AsyncTaskResponse.TODISPLAY);
     }
 
     public void refresh(){
@@ -57,8 +64,22 @@ public class RootApplication extends Application {
     }
 
     public void displayArticle(Long id) {
+        Log.d(LOG,"display article");
         if(mArticleActivity != null){
             mArticleActivity.display(mManager.getArticle(id));
+        }
+    }
+
+    public void saveArticle(Long id) {
+        mManager.retrieveArticle(id,AsyncTaskResponse.TOSAVE);
+    }
+
+    public void reactToError(AsyncTaskResponse response) {
+        if(mArticleActivity !=null){
+            mArticleActivity.finish();
+        }
+        if(mActivity != null){
+            mActivity.showSnackbar(response.result);
         }
     }
 }

@@ -18,7 +18,8 @@ public class ArticleActivity extends Activity {
     }
 
     public void display(Article parts) {
-        ((ListView)findViewById(R.id.list)).setAdapter(new ArticlePartsAdapter(parts,getApplicationContext()));
+        ((ListView)findViewById(R.id.list)).setAdapter(new ArticlePartsAdapter(parts, (RootApplication) getApplicationContext()));
         findViewById(R.id.progress_loader).setVisibility(View.GONE);
+        parts.read = true;
     }
 }

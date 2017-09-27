@@ -5,6 +5,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
+import android.widget.CheckBox;
 import android.widget.TextView;
 
 import java.util.List;
@@ -19,11 +20,11 @@ import ch.widmer.yannick.arstechnicafeed.article.Article;
 public class ArticleListAdapter extends BaseAdapter {
 
     List<Article> mList;
-    Context mContext;
+    RootApplication mContext;
     LayoutInflater mLayoutInflater;
 
 
-    public ArticleListAdapter(List<Article> list, Context context) {
+    public ArticleListAdapter(List<Article> list, RootApplication context) {
         super();
         mList = list;
         mContext = context;
@@ -54,20 +55,26 @@ public class ArticleListAdapter extends BaseAdapter {
         if(convertView == null)
             convertView = mLayoutInflater.inflate(R.layout.list_item,null);
 
-        Article entry = getItem(position);
+        final Article entry = getItem(position);
 
         TextView title = (TextView) convertView.findViewById(R.id.title);
         title.setText(entry.title);
         title.setTextAppearance(entry.read?R.style.BaseTextGreyedout:R.style.BaseText);
 
         ((TextView) convertView.findViewById(R.id.description)).setText(entry.description);
-        if(entry.author == null)
-            ((TextView) convertView.findViewById(R.id.author)).setText("-");
-        else
-            ((TextView) convertView.findViewById(R.id.author)).setText(entry.author);
+        ((TextView) convertView.findViewById(R.id.author)).setText(entry.author);
 
-        ((TextView) convertView.findViewById(R.id.date)).setText(Article.format.format(entry.publishedDate));
+        ((TextView) convertView.findViewById(R.id.date)).setText(Article.showFormat.format(entry.publishedDate));
 
+        final CheckBox box = (CheckBox)convertView.findViewById(R.id.save_box);
+        box.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                entry.toBeSaved = box.isChecked();
+                if(entry.toBeSaved)
+                    mContext.saveArticle(entry.id);
+            }
+        });
 
         return convertView;
     }

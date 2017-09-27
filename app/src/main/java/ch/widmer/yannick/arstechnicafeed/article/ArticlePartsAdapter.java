@@ -1,10 +1,13 @@
 package ch.widmer.yannick.arstechnicafeed.article;
 
+import android.app.AlertDialog;
+import android.app.Dialog;
 import android.content.Context;
 import android.text.Html;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.Window;
 import android.widget.BaseAdapter;
 import android.widget.TextView;
 
@@ -15,6 +18,7 @@ import java.util.List;
 
 import ch.widmer.yannick.arstechnicafeed.MyVolleyRequestQueue;
 import ch.widmer.yannick.arstechnicafeed.R;
+import ch.widmer.yannick.arstechnicafeed.RootApplication;
 
 
 /**
@@ -24,11 +28,11 @@ import ch.widmer.yannick.arstechnicafeed.R;
 public class ArticlePartsAdapter extends BaseAdapter {
 
     Article mArticle;
-    Context mContext;
+    RootApplication mContext;
     LayoutInflater mLayoutInflater;
 
 
-    public ArticlePartsAdapter(Article article, Context context) {
+    public ArticlePartsAdapter(Article article, RootApplication context) {
         super();
         mArticle = article;
         mContext = context;
@@ -63,32 +67,21 @@ public class ArticlePartsAdapter extends BaseAdapter {
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
 
-        ArticlePart part = getItem(position);
-        if(convertView == null) // Since we implement getViewType and Count if the view is non null it should be of the right type
-            convertView = mLayoutInflater.inflate(part.getType().layout,null);
+        final ArticlePart part = getItem(position);
+        if(convertView == null)  // Since we implement getViewType and Count if the view is non null it should be of the right type
+            convertView = mLayoutInflater.inflate(part.getType().layout, null);
+
 
 
         switch(part.getType()){
             case TITLE: // almost the same as in ArticleListAdapter
                 Article article = (Article)part;
-                TextView title = (TextView) convertView.findViewById(R.id.title);
-                title.setText(article.title);
-                title.setTextAppearance(R.style.BaseText);
-
+                ((TextView) convertView.findViewById(R.id.title)).setText(article.title);
                 ((TextView) convertView.findViewById(R.id.description)).setText(article.description);
-                if(article.author == null)
-                    ((TextView) convertView.findViewById(R.id.author)).setText("-");
-                else
-                    ((TextView) convertView.findViewById(R.id.author)).setText(article.author);
-
-                ((TextView) convertView.findViewById(R.id.date)).setText(Article.format.format(article.publishedDate));
-
+                ((TextView) convertView.findViewById(R.id.date)).setText(Article.showFormat.format(article.publishedDate));
+                ((TextView) convertView.findViewById(R.id.author)).setText(article.author);
                 break;
-            case H1:
-            case H2:
-            case H3:
-            case PARAGRAPH:
-            case BLOCKQUOTE:
+            case TEXT:
                 ((TextView)convertView).setText(Html.fromHtml(((Text) part).getText()));
                 break;
             case FIGURE:

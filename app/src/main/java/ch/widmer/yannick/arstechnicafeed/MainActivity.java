@@ -32,11 +32,10 @@ public class MainActivity extends AppCompatActivity {
 
         ListView lv = (ListView) findViewById(R.id.list);
 
-        mAdapter = new ArticleListAdapter(((RootApplication)getApplication()).getEntrys(),this);
+        mAdapter = new ArticleListAdapter(((RootApplication)getApplication()).getEntrys(),((RootApplication)getApplication()));
         lv.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                Log.d(LOG,"Item clicked. id: "+id);
                 if(id == -1){
                     // That means the article is  not saved yet in the db, which would mean the Article was selected fast.
                     // In that case we make the user wait
@@ -53,6 +52,12 @@ public class MainActivity extends AppCompatActivity {
         Point size = new Point();
         getWindowManager().getDefaultDisplay().getSize(size);
         ((RootApplication)getApplicationContext()).setMainActivity(this,size.x);
+    }
+
+    public void showSnackbar(AsyncTaskResponse.Results error){
+
+        Snackbar.make(this.findViewById(android.R.id.content), error.stringId, Snackbar.LENGTH_LONG)
+                .setAction("Action", null).show();
     }
 
 

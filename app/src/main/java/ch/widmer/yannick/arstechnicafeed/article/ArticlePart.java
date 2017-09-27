@@ -13,9 +13,7 @@ public interface ArticlePart {
 
 
     enum Type{
-        TITLE(R.layout.list_item), PARAGRAPH(R.layout.list_paragraph),
-        BLOCKQUOTE(R.layout.list_blockquotes), FIGURE(R.layout.list_figure),
-        H1(R.layout.list_h1), H2(R.layout.list_h2),H3(R.layout.list_h3);
+        TITLE(R.layout.list_item), TEXT(R.layout.list_paragraph), FIGURE(R.layout.list_figure);
 
         int layout;
         Type(int layout){

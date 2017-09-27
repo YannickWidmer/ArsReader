@@ -6,16 +6,14 @@ package ch.widmer.yannick.arstechnicafeed.article;
 
 public class Text implements ArticlePart{
     private String mText;
-    private ArticlePart.Type mType;
 
-    public Text(ArticlePart.Type type, String text){
+    public Text( String text){
         mText = text;
-        mType = type;
     }
 
     @Override
     public Type getType(){
-        return mType;
+        return Type.TEXT;
     }
 
     public String getText(){
