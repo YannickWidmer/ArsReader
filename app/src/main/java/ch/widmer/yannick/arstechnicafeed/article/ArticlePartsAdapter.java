@@ -9,6 +9,9 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.widget.BaseAdapter;
+import android.widget.Button;
+import android.widget.CheckBox;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.android.volley.toolbox.ImageLoader;
@@ -19,6 +22,8 @@ import java.util.List;
 import ch.widmer.yannick.arstechnicafeed.MyVolleyRequestQueue;
 import ch.widmer.yannick.arstechnicafeed.R;
 import ch.widmer.yannick.arstechnicafeed.RootApplication;
+
+import static android.view.View.GONE;
 
 
 /**
@@ -80,15 +85,28 @@ public class ArticlePartsAdapter extends BaseAdapter {
                 ((TextView) convertView.findViewById(R.id.description)).setText(article.description);
                 ((TextView) convertView.findViewById(R.id.date)).setText(Article.showFormat.format(article.publishedDate));
                 ((TextView) convertView.findViewById(R.id.author)).setText(article.author);
+                ((CheckBox) convertView.findViewById(R.id.save_box)).setChecked(article.toBeSaved);
                 break;
             case TEXT:
                 ((TextView)convertView).setText(Html.fromHtml(((Text) part).getText()));
                 break;
             case FIGURE:
-                NetworkImageView view =(NetworkImageView)convertView;
-                ImageLoader imageLoader = MyVolleyRequestQueue.getInstance(mContext).getImageLoader();
-                imageLoader.get(((Figure)part).getUrl(), ImageLoader.getImageListener(view,R.mipmap.ic_launcher, android.R.drawable.ic_dialog_alert));
-                view.setImageUrl(((Figure)part).getUrl(),imageLoader);
+                // Snce NetworkImageView doesn't work with bitmaps we need two imageviews and put ones visibility
+                // to GONE and use the other depending on the case
+                Figure fig = (Figure) part;
+                ((TextView)convertView.findViewById(R.id.caption)).setText(Html.fromHtml(fig.getCaption()));
+                NetworkImageView img_retrieve =(NetworkImageView)convertView.findViewById(R.id.image_retrieve);
+                ImageView img_local = (ImageView)convertView.findViewById(R.id.image_local);
+                if(fig.getBitmap() == null) {
+                    img_local.setVisibility(GONE);
+                    ImageLoader imageLoader = MyVolleyRequestQueue.getInstance(mContext).getImageLoader();
+                    imageLoader.get(((Figure) part).getUrl(), ImageLoader.getImageListener(img_retrieve, R.mipmap.ic_launcher, android.R.drawable.ic_dialog_alert));
+                    img_retrieve.setImageUrl(((Figure) part).getUrl(), imageLoader);
+                }else{
+                    img_retrieve.setVisibility(GONE);
+                    img_local.setScaleType(ImageView.ScaleType.FIT_XY);
+                    img_local.setImageBitmap(fig.getBitmap());
+                }
                 break;
         }
 

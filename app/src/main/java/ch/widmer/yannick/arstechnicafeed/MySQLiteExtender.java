@@ -43,8 +43,8 @@ public class MySQLiteExtender extends SQLiteOpenHelper {
 
 
     //Table columns for all tables
-    private static final String KEY_ID="id",  KEY_TITLE = "title", KEY_TEXT = "text", KEY_IMAGE ="image",
-            KEY_READ = "read", KEY_TOBESAVED = "to_be_saved", KEY_ORDER = "order_of_paragraph",
+    private static final String KEY_ID="id",  KEY_TITLE = "title", KEY_TEXT = "text", KEY_IMAGE ="image", KEY_CAPTION = "caption",
+            KEY_READ = "read", KEY_TOBESAVED = "to_be_saved", KEY_SAVED = "saved", KEY_ORDER = "order_of_paragraph",
             KEY_AUTHOR = "author", KEY_DESCRIPTION = "description",
             KEY_URL = "url", KEY_URLTOIMAGE = "url_to_image",
             KEY_DATE = "date";
@@ -63,6 +63,7 @@ public class MySQLiteExtender extends SQLiteOpenHelper {
                 + KEY_TITLE + " TEXT,"
                 + KEY_READ + " BOOLEAN,"
                 + KEY_TOBESAVED + " BOOLEAN,"
+                + KEY_SAVED + " BOOLEAN,"
                 + KEY_AUTHOR + " TEXT,"
                 + KEY_DESCRIPTION + " TEXT,"
                 + KEY_URL + " TEXT,"
@@ -79,6 +80,7 @@ public class MySQLiteExtender extends SQLiteOpenHelper {
         String CREATE_ARTICLE_IMAGES = "CREATE TABLE " + TABLE_IMAGES + "("
                 + KEY_ID + " INTEGER,"
                 + KEY_ORDER + " INTEGER,"
+                + KEY_CAPTION + " TEXT,"
                 + KEY_URL+ " TEXT,"
                 + KEY_IMAGE + " BLOB,"
                 + " FOREIGN KEY ("+KEY_ID+") REFERENCES "+ TABLE_ARTICLES +" ("+KEY_ID+") ON DELETE CASCADE);";
@@ -95,6 +97,7 @@ public class MySQLiteExtender extends SQLiteOpenHelper {
         // Drop older table if existed
         db.execSQL("DROP TABLE IF EXISTS " + TABLE_ARTICLES);
         db.execSQL("DROP TABLE IF EXISTS " + TABLE_ARTICLEPARAGRAPHS);
+        db.execSQL("DROP TABLE IF EXISTS " + TABLE_IMAGES);
         // Create tables again
         onCreate(db);
     }
@@ -102,29 +105,37 @@ public class MySQLiteExtender extends SQLiteOpenHelper {
     ////////////////// List ENTRIES /////////////////////////////////////////
 
     public synchronized  void push(List<Article> entries){
-        ContentValues c;
+        Log.d(LOG,"Pushing entries:");
         for(Article entry:entries){
-            c = new ContentValues();
-            c.put(KEY_AUTHOR, entry.author);
-            c.put(KEY_DATE, entry.publishedDate.getTime());
-            c.put(KEY_DESCRIPTION, entry.description);
-            c.put(KEY_URL, entry.url);
-            c.put(KEY_URLTOIMAGE, entry.urlToImage);
-            c.put(KEY_READ,entry.read);
-            c.put(KEY_TOBESAVED,entry.toBeSaved);
-            c.put(KEY_TITLE,entry.title);
-            entry.id = pushData(TABLE_ARTICLES,entry.id,c);
+            pushArticleTitleAndMeta(entry);
         }
+    }
+
+    public void pushArticleTitleAndMeta(Article entry){
+        ContentValues c;
+        c = new ContentValues();
+        c.put(KEY_AUTHOR, entry.author);
+        c.put(KEY_DATE, entry.publishedDate.getTime());
+        c.put(KEY_DESCRIPTION, entry.description);
+        c.put(KEY_URL, entry.url);
+        c.put(KEY_URLTOIMAGE, entry.urlToImage);
+        c.put(KEY_READ,entry.read?1:0);
+        c.put(KEY_TOBESAVED,entry.toBeSaved?1:0);
+        c.put(KEY_SAVED,entry.saved?1:0);
+        c.put(KEY_TITLE,entry.title);
+        Log.d(LOG,"  - Pushing "+entry.toString());
+        entry.id = pushData(TABLE_ARTICLES,entry.id,c);
     }
 
     public synchronized List<Article> getEntries(){
         SQLiteDatabase db = getReadableDatabase();
         Cursor cursor = db.query(TABLE_ARTICLES, new String[]{KEY_ID, KEY_AUTHOR, KEY_DATE, KEY_DESCRIPTION,
-                        KEY_URL, KEY_URLTOIMAGE, KEY_READ, KEY_TOBESAVED,KEY_TITLE},
+                        KEY_URL, KEY_URLTOIMAGE, KEY_READ, KEY_TOBESAVED, KEY_SAVED,KEY_TITLE},
                 null,null, null, null, KEY_DATE+" DESC", null);
         Article entry;
         ArrayList<Article> res = new ArrayList<>();
 
+        Log.d(LOG,"Getting entries:");
         if(cursor.moveToFirst()){
             do{
                 // Article(Long id,String title, String author, String description,
@@ -137,7 +148,9 @@ public class MySQLiteExtender extends SQLiteOpenHelper {
                         getString(cursor,KEY_URLTOIMAGE),
                         new Date(getLong(cursor, KEY_DATE)),
                         getBool(cursor,KEY_READ),
-                        getBool(cursor,KEY_TOBESAVED));
+                        getBool(cursor,KEY_TOBESAVED),
+                        getBool(cursor,KEY_SAVED));
+                Log.d(LOG,"  - Got entry "+entry.toString());
                 res.add(entry);
             }while (cursor.moveToNext());
         }
@@ -148,16 +161,12 @@ public class MySQLiteExtender extends SQLiteOpenHelper {
 
     /////////////////  PARAGRAPHS   /////////////////////////////////////////
 
-    public synchronized void push(final Article article){
-        //in order to make sure we don't save anything several times we errase anything that is allready there
-        // to do so we use that paragraphs and images arre errased on cascade hence we first delete the entry
-        deleteEntry(TABLE_ARTICLES,article.id);
-        // and now all tables are emptied of this entry. Now we save the article, it is a bit cumbersome to instantiate an array to
-        // save on article but we don't want to reapeat the push method.
-        ArrayList<Article> singleList = new ArrayList<>();
-        singleList.add(article);
-        push(singleList);
-        // NOw we save the paragraphs and images of the article
+    public synchronized void pushCompleteArticle(final Article article){
+        // First we delete anything that might allready exist in the db about this aritcle
+        deleteEntry(TABLE_IMAGES,article.id);
+        deleteEntry(TABLE_ARTICLEPARAGRAPHS,article.id);
+
+        // Now we save the paragraphs and images of the article
         ContentValues c;
         int order = 0;
         for(ArticlePart p:article.paragraphs){
@@ -174,23 +183,17 @@ public class MySQLiteExtender extends SQLiteOpenHelper {
                     c.put(KEY_ID, article.id);
                     c.put(KEY_ORDER,order++);
                     c.put(KEY_URL,((Figure)p).getUrl());
+                    c.put(KEY_CAPTION,((Figure)p).getCaption());
                     c.put(KEY_IMAGE,getBytes(((Figure)p).getBitmap()));
                     pushData(TABLE_IMAGES,null,c);
                     break;
             }
         }
+        // finally we update the saved value, this has to be done in the db too.
+        article.saved = true;
+        pushArticleTitleAndMeta(article);
     }
 
-    public void push(Long id, int tempOrder, Figure fig) {
-        getWritableDatabase().delete(TABLE_IMAGES,KEY_ID + " = ?,"+KEY_ORDER+ " =?",
-                new String[]{String.valueOf(id),String.valueOf(tempOrder)});
-        ContentValues c = new ContentValues();
-        c.put(KEY_ID, id);
-        c.put(KEY_ORDER,tempOrder);
-        c.put(KEY_URL,fig.getUrl());
-        c.put(KEY_IMAGE,getBytes(fig.getBitmap()));
-        pushData(TABLE_ARTICLEPARAGRAPHS,id,c);
-    }
 
     public synchronized ArrayList<ArticlePart> getArticleParagraphs(Long id) {
         SQLiteDatabase db = getReadableDatabase();
@@ -206,13 +209,13 @@ public class MySQLiteExtender extends SQLiteOpenHelper {
         }
         cursor.close();
 
-        cursor = db.query(TABLE_IMAGES, new String[]{KEY_ORDER, KEY_IMAGE},
-                KEY_ID+"=?",new String[]{id.toString()}, null, null, null, null);
+        cursor = db.query(TABLE_IMAGES, new String[]{KEY_ORDER, KEY_IMAGE, KEY_CAPTION,KEY_URL},
+                KEY_ID+"=?",new String[]{String.valueOf(id)}, null, null, null, null);
 
         Figure fig;
         if(cursor.moveToFirst()){
             do{
-                fig = new Figure(getString(cursor,KEY_URL));
+                fig = new Figure(getString(cursor,KEY_URL),getString(cursor,KEY_CAPTION));
                 fig.setBitmap(getImage(getBlob(cursor,KEY_IMAGE)));
                 partsMap.put(getLong(cursor,KEY_ORDER),fig);
             }while (cursor.moveToNext());
@@ -220,7 +223,7 @@ public class MySQLiteExtender extends SQLiteOpenHelper {
         cursor.close();
         db.close();
         ArrayList<ArticlePart> res = new ArrayList<>();
-        for(int i =0; i<partsMap.size();++i)
+        for(Long i = Long.valueOf(0); i<partsMap.size(); ++i)
             res.add(partsMap.get(i));
         return res;
     }
@@ -250,10 +253,10 @@ public class MySQLiteExtender extends SQLiteOpenHelper {
     private long pushData(String table,Long id, ContentValues values){
         SQLiteDatabase db = getWritableDatabase();
         if(id == null){
-            Log.d(LOG,"inserting ");
+            Log.d(LOG,"inserting " + values.toString());
             id=db.insert(table, null,values);
         }else{
-            Log.d(LOG,"updating ");
+            Log.d(LOG,"updating " + values.toString());
             db.update(table, values, KEY_ID+" = ?", new String[]{String.valueOf(id)});
         }
         db.close();

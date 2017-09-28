@@ -5,6 +5,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
+import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.TextView;
 
@@ -66,7 +67,8 @@ public class ArticleListAdapter extends BaseAdapter {
 
         ((TextView) convertView.findViewById(R.id.date)).setText(Article.showFormat.format(entry.publishedDate));
 
-        final CheckBox box = (CheckBox)convertView.findViewById(R.id.save_box);
+        final CheckBox box = (CheckBox) convertView.findViewById(R.id.save_box);
+        box.setChecked(entry.toBeSaved);
         box.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {

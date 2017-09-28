@@ -54,16 +54,21 @@ public class MainActivity extends AppCompatActivity {
         ((RootApplication)getApplicationContext()).setMainActivity(this,size.x);
     }
 
-    public void showSnackbar(AsyncTaskResponse.Results error){
-
-        Snackbar.make(this.findViewById(android.R.id.content), error.stringId, Snackbar.LENGTH_LONG)
-                .setAction("Action", null).show();
+    @Override
+    protected  void onResume(){
+        super.onResume();
+        mAdapter.notifyDataSetChanged();
     }
 
+    public void showSnackbar(int article_saved) {
+        Snackbar.make(this.findViewById(android.R.id.content), article_saved, Snackbar.LENGTH_LONG)
+                .setAction("Action", null).show();
+    }
 
     public void refresh(){
         mAdapter.notifyDataSetChanged();
         Snackbar.make(this.findViewById(android.R.id.content), "refresh successfull", Snackbar.LENGTH_LONG)
                 .setAction("Action", null).show();
     }
+
 }

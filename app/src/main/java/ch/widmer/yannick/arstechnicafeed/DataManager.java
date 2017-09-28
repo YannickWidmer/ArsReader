@@ -1,7 +1,9 @@
 package ch.widmer.yannick.arstechnicafeed;
 
+import android.graphics.Bitmap;
 import android.os.AsyncTask;
 import android.util.Log;
+import android.widget.ImageView;
 
 import com.android.volley.AuthFailureError;
 import com.android.volley.NetworkError;
@@ -12,6 +14,7 @@ import com.android.volley.Response;
 import com.android.volley.ServerError;
 import com.android.volley.TimeoutError;
 import com.android.volley.VolleyError;
+import com.android.volley.toolbox.ImageRequest;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.StringRequest;
 
@@ -25,6 +28,7 @@ import org.jsoup.select.Elements;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -37,14 +41,22 @@ import static ch.widmer.yannick.arstechnicafeed.AsyncTaskResponse.RETRIEVEARTICL
 import static ch.widmer.yannick.arstechnicafeed.AsyncTaskResponse.RETRIEVEENTRIES;
 import static ch.widmer.yannick.arstechnicafeed.AsyncTaskResponse.Results.AUTHFAILERROR;
 import static ch.widmer.yannick.arstechnicafeed.AsyncTaskResponse.Results.FAILED;
+import static ch.widmer.yannick.arstechnicafeed.AsyncTaskResponse.Results.INWORK;
 import static ch.widmer.yannick.arstechnicafeed.AsyncTaskResponse.Results.NETWORKTIMEOUTERROR;
 import static ch.widmer.yannick.arstechnicafeed.AsyncTaskResponse.Results.OK;
 import static ch.widmer.yannick.arstechnicafeed.AsyncTaskResponse.Results.PARSEERROR;
 import static ch.widmer.yannick.arstechnicafeed.AsyncTaskResponse.Results.SERVERERROR;
 import static ch.widmer.yannick.arstechnicafeed.AsyncTaskResponse.TODISPLAY;
+import static ch.widmer.yannick.arstechnicafeed.AsyncTaskResponse.TOSAVE;
 import static ch.widmer.yannick.arstechnicafeed.AsyncTaskResponse.WRITEARTICLE;
 
 /**
+ * DataManager is retrieving the data from the internet and saving it in the database. When retrieving data it first checks if data is
+ * in the db and then decides what to do. At the end of a workflow it will trigger dealWithResponse which will then call methods
+ * on the Context:RootApplication.
+ *
+ * When possible the DataManager will process its tasks asynchronously.
+ *
  * Created by yanni on 01.09.2017.
  */
 
@@ -56,11 +68,15 @@ public class DataManager {
     private MySQLiteExtender mSQLiteExtender;
     private RootApplication mRoot;
     private static String LOG = "DATAMANAGER";
+    private int mScreenWidth;
 
 
     // Whenever an asynctask finishes it sends a response via this method.
     public void dealWithResponse(AsyncTaskResponse response){
         Log.d(LOG,"dealing wiht response "+response.result.toString()+" reason "+response.reason);
+        if(response.result == INWORK)
+            return;
+
         if(response.result == OK){
             switch (response.task){
                 case RETRIEVEENTRIES:
@@ -68,13 +84,17 @@ public class DataManager {
                     new AsyncWriteNewEntries().execute();
                     break;
                 case RETRIEVEARTICLE:
-                    if(response.reason == TODISPLAY)
+                    if(response.reason == TODISPLAY) {// IN that case its going to be read and hence we save the change of state
                         mRoot.displayArticle(response.id);
+                        mEntryMap.get(response.id).read = true;
+                        writeArticleTitle(response.id);
+                    }
                     else{
-                        writeArticle(response.id);
+                        getArticleBitmapsAndWrite(response.id);
                     }
                     break;
-                case WRITEARTICLE: // nothing to do after that
+                case WRITEARTICLE:
+                    mRoot.displayToastArticleSaved();
                     break;
             }
         }else{
@@ -117,6 +137,10 @@ public class DataManager {
         MyVolleyRequestQueue.getInstance(mRoot).getRequestQueue().add(request);
     }
 
+    public void setScreenWidth(int screenWidth) {
+        this.mScreenWidth = screenWidth;
+    }
+
     private class AsyncParseEntries extends AsyncTask<Void, Void, AsyncTaskResponse.Results> {
         private JSONObject response;
 
@@ -144,11 +168,11 @@ public class DataManager {
                     } catch (Exception e) {
                     }
                 }
+                Collections.sort(mEntries);
                 return OK;
             } catch (Exception e) {
                 e.printStackTrace();
             }
-            Collections.sort(mEntries);
             return null;
         }
 
@@ -156,6 +180,11 @@ public class DataManager {
         protected void onPostExecute(AsyncTaskResponse.Results status) {
             dealWithResponse(new AsyncTaskResponse(RETRIEVEENTRIES,TODISPLAY,status,null));
         }
+    }
+
+    public void writeArticleTitle(Long id){
+        if(mEntryMap.containsKey(id))
+            mSQLiteExtender.pushArticleTitleAndMeta(mEntryMap.get(id));
     }
 
 
@@ -167,7 +196,6 @@ public class DataManager {
 
     public void retrieveArticle(final Long id, final int reason) {
         if (mEntryMap.get(id).saved) {
-            Log.d(LOG,"article is saved");
             if (mEntryMap.get(id).paragraphs != null) {
                 dealWithResponse(new AsyncTaskResponse(RETRIEVEARTICLE,reason,OK,id));
                 return;
@@ -175,7 +203,9 @@ public class DataManager {
             new AsyncTask<Void, Void, Long>() {
                 @Override
                 protected Long doInBackground(Void... params) {
-                    mEntryMap.get(id).paragraphs = mSQLiteExtender.getArticleParagraphs(id);
+                    Article article = mEntryMap.get(id);
+                    article.paragraphs = mSQLiteExtender.getArticleParagraphs(id);
+                    article.paragraphs.add(0,article);
                     return null;
                 }
 
@@ -236,19 +266,29 @@ public class DataManager {
                             tempText +=  child.outerHtml();
                             break;
                         case "div":
+                            if (!tempText.equals("")) {
+                                parts.add(new Text(tempText));
+                                tempText = "";
+                            }
+                            Iterator<Element> imgs = child.select(("div.image")).iterator(),
+                                    captions = child.select("div.caption").iterator();
+                            while(imgs.hasNext() && captions.hasNext()){
+                                final Figure fig = new Figure(imgs.next().attr("style").split("[']+")[1],captions.next().html());
+                                parts.add(fig);
+                            }
+                            break;
                         case "figure":
                             if (!tempText.equals("")) {
                                 parts.add(new Text(tempText));
                                 tempText = "";
                             }
 
+                            Log.d(LOG,child.toString());
                             if (child.hasClass("video"))
                                 parts.add(new Text("video, not supported yet"));
                             else {
-                                for (Element element : child.select("img")) {
-                                    final Figure fig = new Figure(element.attr("src"));
-                                    parts.add(fig);
-                                }
+                                final Figure fig = new Figure(child.select("img").first().attr("src"),child.select("div.caption-text").html());
+                                parts.add(fig);
                             }
                     }
                 }
@@ -267,12 +307,51 @@ public class DataManager {
         }
     }
 
-    private void writeArticle(Long id){
+    private void getArticleBitmapsAndWrite(final Long id){
         Article article = mEntryMap.get(id);
+        int figuresCount = 0;
         for(ArticlePart part:article.paragraphs){
             if(part instanceof Figure){
-                
+                ++figuresCount;
+                final Figure fig = (Figure)part;
+                ImageRequest request = new ImageRequest(fig.getUrl(),
+                        new Response.Listener<Bitmap>() {
+                            @Override
+                            public void onResponse(Bitmap bitmap) {
+                                fig.setBitmap(bitmap);
+                                new AsyncWriteArticleIfBitmapsLoaded().execute(id);
+                            }
+                        }, mScreenWidth, mScreenWidth, ImageView.ScaleType.CENTER_INSIDE, Bitmap.Config.RGB_565,
+                        new Response.ErrorListener() {
+                            public void onErrorResponse(VolleyError error) {
+                                error.printStackTrace();
+                            }
+                        });
+                MyVolleyRequestQueue.getInstance(mRoot).getRequestQueue().add(request);
             }
+        }
+        if(figuresCount == 0)
+            new AsyncWriteArticleIfBitmapsLoaded().execute(id);
+    }
+
+    private class AsyncWriteArticleIfBitmapsLoaded extends AsyncTask<Long,Void,AsyncTaskResponse> {
+        @Override
+        protected AsyncTaskResponse doInBackground(Long... params) {
+            Article article = mEntryMap.get(params[0]);
+            // in case one of the bitmaps is null don't do anything
+            for (ArticlePart part : article.paragraphs) {
+                if (part instanceof Figure && ((Figure) part).getBitmap() == null)
+                    return new AsyncTaskResponse(WRITEARTICLE,TOSAVE,INWORK,params[0]);
+            }
+            // if we arrive here all Bitmaps are set and hence we can save the article
+            mSQLiteExtender.pushCompleteArticle(article);
+            return new AsyncTaskResponse(WRITEARTICLE,TOSAVE,OK,params[0]);
+        }
+
+        // dealWithResponse should allways be called on the main thread. (UI thread)
+        @Override
+        protected void onPostExecute(AsyncTaskResponse res){
+            dealWithResponse(res);
         }
     }
 
@@ -296,7 +375,7 @@ public class DataManager {
             for(Article entry:mSQLiteExtender.getEntries()){
                 mEntries.add(entry);
                 mEntryMap.put(entry.id,entry);
-                // no need to sort the list since the SQL queries them ordered.
+                Collections.sort(mEntries);
             }
             return null;
         }
@@ -304,6 +383,7 @@ public class DataManager {
         @Override
         protected void onPostExecute(Long v) {
             mRoot.reactToNewEntries();
+            retrieveEntries(); // Now we look for new entries
         }
     }
 

@@ -40,7 +40,7 @@ public class Article implements ArticlePart , Comparable<Article>{
 
 
     public Article(Long id, String title, String author, String description, String url, String urlToImage, Date publishedDate,
-                   boolean read, boolean tobeSaved) {
+                   boolean read, boolean tobeSaved, boolean saved) {
         this.id = id;
         this.title = title;
         this.author = author;
@@ -50,15 +50,12 @@ public class Article implements ArticlePart , Comparable<Article>{
         this.publishedDate = publishedDate;
         this.read = read;
         this.toBeSaved = tobeSaved;
+        this.saved = saved;
     }
 
     @Override
     public Type getType(){
         return Type.TITLE;
-    }
-
-    public Article(){
-        // To be used in MySQLExtender
     }
 
     // For the date obtained from the url request we need following formatter
@@ -99,11 +96,11 @@ public class Article implements ArticlePart , Comparable<Article>{
 
     @Override
     public String toString(){
-        return author + "   "+format.format(publishedDate)+ " "+ url +" "+urlToImage;
+        return author + "   "+format.format(publishedDate)+ " saved "+saved+" tobeSaved "+toBeSaved+ " read "+read;
     }
 
     @Override
     public int compareTo(@NonNull Article o) {
-        return publishedDate.compareTo(o.publishedDate);
+        return o.publishedDate.compareTo(publishedDate);
     }
 }

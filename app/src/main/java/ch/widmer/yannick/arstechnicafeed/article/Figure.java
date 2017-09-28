@@ -12,9 +12,10 @@ public class Figure implements ArticlePart {
 
     private Bitmap mBitmap;
     private String mUrl;
+    private String mCaption;
 
-    public Figure(String url){
-        mUrl = url;
+    public Figure(String url, String caption){
+        mUrl = url; mCaption = caption;
     }
 
     public void setBitmap(Bitmap btmp){
@@ -31,5 +32,9 @@ public class Figure implements ArticlePart {
 
     public Bitmap getBitmap() {
         return mBitmap;
+    }
+
+    public String getCaption(){
+        return mCaption;
     }
 }
