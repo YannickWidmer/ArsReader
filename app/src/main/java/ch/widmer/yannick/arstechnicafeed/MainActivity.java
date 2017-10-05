@@ -67,8 +67,6 @@ public class MainActivity extends AppCompatActivity {
 
     public void refresh(){
         mAdapter.notifyDataSetChanged();
-        Snackbar.make(this.findViewById(android.R.id.content), "refresh successfull", Snackbar.LENGTH_LONG)
-                .setAction("Action", null).show();
     }
 
 }
